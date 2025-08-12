@@ -9,7 +9,7 @@ export async function getProjects(): Promise<{
   projects: ProjectType[];
 }> {
   const session = await auth();
-  const user = session?.user?.email;
+  const user = session?.user;
 
   if (!user) {
     return {
@@ -20,7 +20,7 @@ export async function getProjects(): Promise<{
 
   await dbConnect();
   const projects = await Project.find({
-    user_id: user,
+    user_id: user.id,
   })
     .sort({ _createdAt: -1 })
     .limit(100)
@@ -42,7 +42,7 @@ export async function getProject(
   repoId: string
 ): Promise<ProjectType | null> {
   const session = await auth();
-  const user = session?.user?.email;
+  const user = session?.user;
 
   if (!user) {
     return null;
@@ -50,7 +50,7 @@ export async function getProject(
 
   await dbConnect();
   const project = await Project.findOne({
-    user_id: user,
+    user_id: user.id,
     namespace,
     repoId,
   }).lean();

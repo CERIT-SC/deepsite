@@ -5,6 +5,7 @@ export interface User {
   isLocalUse?: boolean;
   isPro: boolean;
   id: string;
+  email: string;
   token?: string;
 }
 

@@ -68,9 +68,10 @@ async function getMe() {
   const session = await auth();
   if (session && session.user) {
       const me: User = {
-        id: session.user.email as string,
+        id: session.user.id as string,
         name: session.user.name as string,
         fullname: session.user.name as string,
+        email: session.user.email as string,
         isPro: true,
         avatarUrl: "",
       }

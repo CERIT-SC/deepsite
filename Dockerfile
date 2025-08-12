@@ -10,7 +10,9 @@ COPY --chown=1000 package.json package-lock.json ./
 COPY --chown=1000 . .
 
 RUN npm install
+COPY --chown=1000 signin.js /usr/src/app/node_modules/@auth/core/lib/pages/signin.js
 RUN npm run build
+
 
 # Expose the application port (assuming your app runs on port 3000)
 EXPOSE 3000

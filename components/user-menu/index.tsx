@@ -1,5 +1,4 @@
 import {
-  ChartSpline,
   CirclePlus,
   FolderCode,
   Import,
@@ -19,9 +18,10 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { useUser } from "@/hooks/useUser";
+import { signOut } from "next-auth/react"
 
 export const UserMenu = ({ className }: { className?: string }) => {
-  const { logout, user } = useUser();
+  const { user } = useUser();
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
@@ -63,18 +63,12 @@ export const UserMenu = ({ className }: { className?: string }) => {
               View Projects
             </DropdownMenuItem>
           </Link>
-          <a href="https://huggingface.co/settings/billing" target="_blank">
-            <DropdownMenuItem>
-              <ChartSpline className="size-4 text-neutral-100" />
-              Usage Quota
-            </DropdownMenuItem>
-          </a>
         </DropdownMenuGroup>
         <DropdownMenuSeparator />
         <DropdownMenuItem
           onClick={() => {
             if (confirm("Are you sure you want to log out?")) {
-              logout();
+              signOut();
             }
           }}
         >
