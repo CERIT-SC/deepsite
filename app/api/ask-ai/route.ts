@@ -14,7 +14,7 @@ import {
 
 const openai = new OpenAI({
   apiKey: "EMPTY",
-  baseURL: "https://vllm.ai.e-infra.cz/v1",
+  baseURL: process.env.LLM_URL,
 });
 
 export async function POST(request: NextRequest) {
