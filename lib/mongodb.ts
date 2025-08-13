@@ -16,7 +16,7 @@ async function dbConnect() {
 
   if (!cached.promise) {
     cached.promise = mongoose
-      .connect(MONGODB_URI as string)
+      .connect(MONGODB_URI as string, {tlsAllowInvalidCertificates: true})
       .then((mongoose) => {
         return mongoose;
       });
