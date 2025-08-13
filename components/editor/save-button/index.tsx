@@ -31,17 +31,7 @@ export function SaveButton({
         prompts,
       });
       if (res.data.ok) {
-        toast.success("Your space is updated! 🎉", {
-          action: {
-            label: "See Space",
-            onClick: () => {
-              window.open(
-                `https://huggingface.co/spaces/${namespace}/${repoId}`,
-                "_blank"
-              );
-            },
-          },
-        });
+        toast.success("Space updated successfully");
       } else {
         toast.error(res?.data?.error || "Failed to update space");
       }

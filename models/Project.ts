@@ -9,6 +9,14 @@ const ProjectSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
+  title: {
+    type: String,
+    required: true,
+  },
+  html: {
+    type: String,
+    required: true,
+  },
   prompts: {
     type: [String],
     default: [],

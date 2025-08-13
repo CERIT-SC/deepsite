@@ -8,13 +8,6 @@ export const api = axios.create({
   },
 });
 
-export const apiServer = axios.create({
-  baseURL: process.env.NEXT_APP_API_URL as string,
-  headers: {
-    cache: "no-store",
-  },
-});
-
 api.interceptors.request.use(
   async (config) => {
     // get the token from cookies

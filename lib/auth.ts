@@ -22,8 +22,26 @@ export const { auth, handlers, signIn, signOut } = NextAuth({
            }
         },
      }
-  ]
+  ],
+  callbacks: {
+    async session({ session, token }) {
+      if (token && session?.user) {
+        session.user.id = await hashString(token.email!);
+        session.user.name = token.name!;
+        session.user.email = token.email!;
+      }
+      return session;
+    }
+  },
 });
+
+async function hashString(str: string) {
+  const encoder = new TextEncoder()
+  const data = encoder.encode(str)
+  const hashBuffer = await crypto.subtle.digest('SHA-256', data)
+  const hashArray = Array.from(new Uint8Array(hashBuffer))
+  return hashArray.map(b => b.toString(16).padStart(2, '0')).join('')
+}
 
 export const ApiWithAuth = (
   handler: (req: NextRequest, session: Session, ...args: any[]) => Promise<NextResponse|Response>

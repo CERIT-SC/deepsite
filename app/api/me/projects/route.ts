@@ -1,11 +1,9 @@
 import { Session } from "next-auth";
 import { NextRequest, NextResponse } from "next/server";
-import { createRepo, RepoDesignation, uploadFiles } from "@huggingface/hub";
 import { ApiWithAuth } from "@/lib/auth";
 
 import Project from "@/models/Project";
 import dbConnect from "@/lib/mongodb";
-import { COLORS, getPTag } from "@/lib/utils";
 // import type user
 export const GET = ApiWithAuth(async (request: NextRequest, session: Session) => {
   const user = session?.user;
@@ -17,7 +15,7 @@ export const GET = ApiWithAuth(async (request: NextRequest, session: Session) =>
   await dbConnect();
 
   const projects = await Project.find({
-    user_id: user?.id,
+    user_id: user.id,
   })
     .sort({ _createdAt: -1 })
     .limit(100)
@@ -63,9 +61,6 @@ export const POST = ApiWithAuth(async (request: NextRequest, session: Session) =
   await dbConnect();
 
   try {
-    let readme = "";
-    let newHtml = html;
-
     const newTitle = title
       .toLowerCase()
       .replace(/[^a-z0-9]+/g, "-")
@@ -74,47 +69,13 @@ export const POST = ApiWithAuth(async (request: NextRequest, session: Session) =
       .join("-")
       .slice(0, 96);
 
-    const repo: RepoDesignation = {
-      type: "space",
-      name: `${user.name}/${newTitle}`,
-    };
-
-    const { repoUrl } = await createRepo({
-      repo,
-      accessToken: "",
-    });
-    const colorFrom = COLORS[Math.floor(Math.random() * COLORS.length)];
-    const colorTo = COLORS[Math.floor(Math.random() * COLORS.length)];
-    readme = `---
-title: ${newTitle}
-emoji: 🐳
-colorFrom: ${colorFrom}
-colorTo: ${colorTo}
-sdk: static
-pinned: false
-tags:
-  - deepsite
----
-
-Check out the configuration reference at https://huggingface.co/docs/hub/spaces-config-reference`;
-
-    newHtml = html.replace(/<\/body>/, `${getPTag(repo.name)}</body>`);
-    const file = new File([newHtml], "index.html", { type: "text/html" });
-    const readmeFile = new File([readme], "README.md", {
-      type: "text/markdown",
-    });
-    const files = [file, readmeFile];
-    await uploadFiles({
-      repo,
-      files,
-      accessToken: "",
-      commitTitle: `${prompts[prompts.length - 1]} - Initial Deployment`,
-    });
-    const path = repoUrl.split("/").slice(-2).join("/");
+    const path = `${user.id}/${newTitle}`;
     const project = await Project.create({
-      user_id: user.email,
+      user_id: user.id,
       space_id: path,
       prompts,
+      html,
+      title: newTitle,
     });
     return NextResponse.json({ project, path, ok: true }, { status: 201 });
     // eslint-disable-next-line @typescript-eslint/no-explicit-any

@@ -1,21 +1,23 @@
 import { redirect } from "next/navigation";
 
-import { apiServer } from "@/lib/api";
 import { AppEditor } from "@/components/editor";
+import dbConnect from "@/lib/mongodb";
+import Project from "@/models/Project";
+import { auth } from "@/lib/auth";
 
-async function getProject(namespace: string, repoId: string) {
-  // TODO replace with a server action
-  try {
-    const { data } = await apiServer.get(
-      `/me/projects/${namespace}/${repoId}`,
-      {
-      }
-    );
+async function getProjectForUser(
+  userId: string,
+  namespace: string,
+  repoId: string
+) {
+  await dbConnect();
+  
+  const project = await Project.findOne({
+    space_id: `${namespace}/${repoId}`,
+    user_id: userId
+  }).lean();
 
-    return data.project;
-  } catch {
-    return {};
-  }
+  return project ? JSON.parse(JSON.stringify(project)) : null;
 }
 
 export default async function ProjectNamespacePage({
@@ -24,7 +26,14 @@ export default async function ProjectNamespacePage({
   params: Promise<{ namespace: string; repoId: string }>;
 }) {
   const { namespace, repoId } = await params;
-  const project = await getProject(namespace, repoId);
+  const session = await auth()
+
+  if (!session?.user?.id) {
+    redirect("/projects")
+  }
+
+  const project = await getProjectForUser(session.user.id, namespace, repoId);
+
   if (!project?.html) {
     redirect("/projects");
   }

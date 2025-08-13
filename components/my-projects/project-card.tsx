@@ -19,12 +19,6 @@ export function ProjectCard({ project }: { project: Project }) {
         href={`/projects/${project.space_id}`}
         className="relative bg-neutral-900 rounded-2xl overflow-hidden h-44 w-full flex items-center justify-end flex-col px-3 border border-neutral-800"
       >
-        <iframe
-          src={`https://${project.space_id.replace("/", "-")}.static.hf.space/`}
-          frameBorder="0"
-          className="absolute inset-0 w-full h-full top-0 left-0 group-hover:brightness-75 transition-all duration-200 pointer-events-none"
-        ></iframe>
-
         <Button
           variant="default"
           className="w-full transition-all duration-200 translate-y-full group-hover:-translate-y-3"
@@ -35,7 +29,7 @@ export function ProjectCard({ project }: { project: Project }) {
       <div className="flex items-start justify-between gap-3">
         <div>
           <p className="text-neutral-200 text-base font-semibold line-clamp-1">
-            {project.space_id}
+            {project.space_id.split('/').slice(1).join('/')}
           </p>
           <p className="text-sm text-neutral-500">
             Updated{" "}

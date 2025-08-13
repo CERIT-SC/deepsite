@@ -1,11 +1,9 @@
 import { Session } from "next-auth";
 import { NextRequest, NextResponse } from "next/server";
-import { RepoDesignation, spaceInfo, uploadFile } from "@huggingface/hub";
 
 import { ApiWithAuth } from "@/lib/auth";
 import Project from "@/models/Project";
 import dbConnect from "@/lib/mongodb";
-import { getPTag } from "@/lib/utils";
 
 export const GET = ApiWithAuth(async (
   req: NextRequest,
@@ -23,7 +21,7 @@ export const GET = ApiWithAuth(async (
   const { namespace, repoId } = param;
 
   const project = await Project.findOne({
-    user_id: user.email,
+    user_id: user.id,
     space_id: `${namespace}/${repoId}`,
   }).lean();
   if (!project) {
@@ -35,75 +33,16 @@ export const GET = ApiWithAuth(async (
       { status: 404 }
     );
   }
-  const space_url = `https://huggingface.co/spaces/${namespace}/${repoId}/raw/main/index.html`;
-  try {
-    const space = await spaceInfo({
-      name: namespace + "/" + repoId,
-      accessToken: "",
-      additionalFields: ["author"],
-    });
 
-    if (!space || space.sdk !== "static") {
-      return NextResponse.json(
-        {
-          ok: false,
-          error: "Space is not a static space",
-        },
-        { status: 404 }
-      );
-    }
-    if (space.author !== user.name) {
-      return NextResponse.json(
-        {
-          ok: false,
-          error: "Space does not belong to the authenticated user",
-        },
-        { status: 403 }
-      );
-    }
-
-    const response = await fetch(space_url);
-    if (!response.ok) {
-      return NextResponse.json(
-        {
-          ok: false,
-          error: "Failed to fetch space HTML",
-        },
-        { status: 404 }
-      );
-    }
-    let html = await response.text();
-    // remove the last p tag including this url https://enzostvs-deepsite.hf.space
-    html = html.replace(getPTag(namespace + "/" + repoId), "");
-
-    return NextResponse.json(
-      {
-        project: {
-          ...project,
-          html,
-        },
-        ok: true,
+  return NextResponse.json(
+    {
+      project: {
+        ...project,
       },
-      { status: 200 }
-    );
-
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  } catch (error: any) {
-    if (error.statusCode === 404) {
-      await Project.deleteOne({
-        user_id: user.email,
-        space_id: `${namespace}/${repoId}`,
-      });
-      return NextResponse.json(
-        { error: "Space not found", ok: false },
-        { status: 404 }
-      );
-    }
-    return NextResponse.json(
-      { error: error.message, ok: false },
-      { status: 500 }
-    );
-  }
+      ok: true,
+    },
+    { status: 200 }
+  );
 });
 
 export const PUT = ApiWithAuth(async (
@@ -123,7 +62,7 @@ export const PUT = ApiWithAuth(async (
   const { html, prompts } = await req.json();
 
   const project = await Project.findOne({
-    user_id: user.email,
+    user_id: user.id,
     space_id: `${namespace}/${repoId}`,
   }).lean();
   if (!project) {
@@ -136,28 +75,15 @@ export const PUT = ApiWithAuth(async (
     );
   }
 
-  const repo: RepoDesignation = {
-    type: "space",
-    name: `${namespace}/${repoId}`,
-  };
-
-  const newHtml = html.replace(/<\/body>/, `${getPTag(repo.name)}</body>`);
-  const file = new File([newHtml], "index.html", { type: "text/html" });
-  await uploadFile({
-    repo,
-    file,
-    accessToken: "",
-    commitTitle: `${prompts[prompts.length - 1]} - Follow Up Deployment`,
-  });
-
   await Project.updateOne(
-    { user_id: user.email, space_id: `${namespace}/${repoId}` },
+    { user_id: user.id, space_id: `${namespace}/${repoId}` },
     {
       $set: {
         prompts: [
           ...(project && "prompts" in project ? project.prompts : []),
           ...prompts,
         ],
+        html
       },
     }
   );
@@ -180,33 +106,8 @@ export const POST = ApiWithAuth(async (
   const param = await params;
   const { namespace, repoId } = param;
 
-  const space = await spaceInfo({
-    name: namespace + "/" + repoId,
-    accessToken: "",
-    additionalFields: ["author"],
-  });
-
-  if (!space || space.sdk !== "static") {
-    return NextResponse.json(
-      {
-        ok: false,
-        error: "Space is not a static space",
-      },
-      { status: 404 }
-    );
-  }
-  if (space.author !== user.name) {
-    return NextResponse.json(
-      {
-        ok: false,
-        error: "Space does not belong to the authenticated user",
-      },
-      { status: 403 }
-    );
-  }
-
   const project = await Project.findOne({
-    user_id: user.email,
+    user_id: user.id,
     space_id: `${namespace}/${repoId}`,
   }).lean();
   if (project) {
@@ -222,7 +123,7 @@ export const POST = ApiWithAuth(async (
   }
 
   const newProject = new Project({
-    user_id: user.email,
+    user_id: user.id,
     space_id: `${namespace}/${repoId}`,
     prompts: [],
   });
