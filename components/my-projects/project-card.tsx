@@ -19,6 +19,17 @@ export function ProjectCard({ project }: { project: Project }) {
         href={`/projects/${project.space_id}`}
         className="relative bg-neutral-900 rounded-2xl overflow-hidden h-44 w-full flex items-center justify-end flex-col px-3 border border-neutral-800"
       >
+        <iframe
+          style={{
+          width: "500%",
+          height: "500%",
+          transform: "scale(0.2)",
+          transformOrigin: "0 0",
+        }}
+          srcDoc={project.html}
+          className="absolute inset-0 w-full h-full top-0 left-0 group-hover:brightness-75 transition-all duration-200 pointer-events-none"
+        ></iframe>
+
         <Button
           variant="default"
           className="w-full transition-all duration-200 translate-y-full group-hover:-translate-y-3"

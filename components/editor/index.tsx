@@ -36,6 +36,7 @@ export const AppEditor = ({ project }: { project?: Project | null }) => {
   const searchParams = useSearchParams();
   const router = useRouter();
   const deploy = searchParams.get("deploy") === "true";
+  const isPreview = searchParams.get("preview") === "true";
 
   const iframeRef = useRef<HTMLIFrameElement | null>(null);
   const preview = useRef<HTMLDivElement>(null);
@@ -45,7 +46,7 @@ export const AppEditor = ({ project }: { project?: Project | null }) => {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const monacoRef = useRef<any>(null);
 
-  const [currentTab, setCurrentTab] = useState("chat");
+  const [currentTab, setCurrentTab] = useState(isPreview ? "preview" : "chat");
   const [device, setDevice] = useState<"desktop" | "mobile">("desktop");
   const [isResizing, setIsResizing] = useState(false);
   const [isAiWorking, setIsAiWorking] = useState(false);
