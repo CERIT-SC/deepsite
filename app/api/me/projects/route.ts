@@ -70,14 +70,29 @@ export const POST = ApiWithAuth(async (request: NextRequest, session: Session) =
       .slice(0, 96);
 
     const path = `${user.id}/${newTitle}`;
-    const project = await Project.create({
+
+    const project = await Project.findOne({
+      user_id: user.id,
+      space_id: path,
+    }).lean();
+    if (project) {
+      return NextResponse.json(
+        {
+          ok: false,
+          error: "Project already exists",
+        },
+        { status: 400 }
+      );
+    }
+
+    const newProject = await Project.create({
       user_id: user.id,
       space_id: path,
       prompts,
       html,
       title: newTitle,
     });
-    return NextResponse.json({ project, path, ok: true }, { status: 201 });
+    return NextResponse.json({ newProject, path, ok: true }, { status: 201 });
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
   } catch (err: any) {
     return NextResponse.json(
