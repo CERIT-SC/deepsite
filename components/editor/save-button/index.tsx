@@ -49,7 +49,7 @@ export function SaveButton({
         onClick={updateSpace}
       >
         <MdSave className="size-4" />
-        Deploy your Project{" "}
+        Save your Project{" "}
         {loading && <Loading className="ml-2 size-4 animate-spin" />}
       </Button>
       <Button
@@ -58,7 +58,7 @@ export function SaveButton({
         className="lg:hidden relative"
         onClick={updateSpace}
       >
-        Deploy {loading && <Loading className="ml-2 size-4 animate-spin" />}
+        Save {loading && <Loading className="ml-2 size-4 animate-spin" />}
       </Button>
     </>
   );
