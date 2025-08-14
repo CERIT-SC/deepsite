@@ -53,14 +53,14 @@ export const LoadProject = ({
       return;
     }
 
-    const [username, namespace] = url
+    const [username, repoId] = url
       .replace("https://huggingface.co/spaces/", "")
       .replace("https://hf.co/spaces/", "")
       .split("/");
 
     setIsLoading(true);
     try {
-      const response = await api.post(`/me/projects/${username}/${namespace}`);
+      const response = await api.post(`/me/projects/${username}/${repoId}`);
       toast.success("Project imported successfully!");
       setOpen(false);
       setUrl("");

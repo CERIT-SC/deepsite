@@ -4,6 +4,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { ApiWithAuth } from "@/lib/auth";
 import Project from "@/models/Project";
 import dbConnect from "@/lib/mongodb";
+import { getPTag } from "@/lib/utils";
 
 export const GET = ApiWithAuth(async (
   req: NextRequest,
@@ -106,9 +107,27 @@ export const POST = ApiWithAuth(async (
   const param = await params;
   const { namespace, repoId } = param;
 
+  const space_url = `https://huggingface.co/spaces/${namespace}/${repoId}/raw/main/index.html`;
+
+  const response = await fetch(space_url);
+  if (!response.ok) {
+    console.log(await response.text())
+    console.log(space_url)
+    return NextResponse.json(
+      {
+        ok: false,
+        error: "Failed to fetch space HTML",
+      },
+      { status: 404 }
+    );
+  }
+  let html = await response.text();
+  html = html.replace(getPTag(namespace + "/" + repoId), "");
+
+  const path = `${user.id}/${repoId}`;
   const project = await Project.findOne({
     user_id: user.id,
-    space_id: `${namespace}/${repoId}`,
+    space_id: path
   }).lean();
   if (project) {
     // redirect to the project page if it already exists
@@ -116,7 +135,7 @@ export const POST = ApiWithAuth(async (
       {
         ok: false,
         error: "Project already exists",
-        redirect: `/projects/${namespace}/${repoId}`,
+        redirect: `/projects/${user.id}/${repoId}`,
       },
       { status: 400 }
     );
@@ -124,19 +143,18 @@ export const POST = ApiWithAuth(async (
 
   const newProject = new Project({
     user_id: user.id,
-    space_id: `${namespace}/${repoId}`,
+    space_id: path,
     prompts: [],
+    title: repoId,
+    html
   });
 
   await newProject.save();
   return NextResponse.json(
     {
       ok: true,
-      project: {
-        id: newProject._id,
-        space_id: newProject.space_id,
-        prompts: newProject.prompts,
-      },
+      project: newProject,
+      path
     },
     { status: 201 }
   );
