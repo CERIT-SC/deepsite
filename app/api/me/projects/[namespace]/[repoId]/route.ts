@@ -159,3 +159,42 @@ export const POST = ApiWithAuth(async (
     { status: 201 }
   );
 });
+
+
+export const DELETE = ApiWithAuth(async (
+  req: NextRequest,
+  session: Session,
+  { params }: { params: { namespace: string; repoId: string } }
+) => {
+  const user = session?.user;
+
+  if (!user) {
+    return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+  }
+
+  await dbConnect();
+  const param = await params;
+  const { namespace, repoId } = param;
+
+  const result = await Project.deleteOne({
+    user_id: user.id,
+    space_id: `${namespace}/${repoId}`,
+  }).lean();
+
+  if (result.deletedCount === 0) {
+    return NextResponse.json(
+      {
+        ok: false,
+        error: "Project not found",
+      },
+      { status: 404 }
+    );
+  }
+
+  return NextResponse.json(
+    {
+      ok: true,
+    },
+    { status: 200 }
+  );
+})

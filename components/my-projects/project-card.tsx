@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { formatDistance } from "date-fns";
-import { EllipsisVertical, Settings } from "lucide-react";
+import { EllipsisVertical, Trash2 } from "lucide-react";
 
 import { Project } from "@/types";
 import { Button } from "@/components/ui/button";
@@ -12,7 +12,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 
-export function ProjectCard({ project }: { project: Project }) {
+export function ProjectCard({ project, onDelete }: { project: Project, onDelete: () => void }) {
   return (
     <div className="text-neutral-200 space-y-4 group cursor-pointer">
       <Link
@@ -61,15 +61,10 @@ export function ProjectCard({ project }: { project: Project }) {
           </DropdownMenuTrigger>
           <DropdownMenuContent className="w-56" align="start">
             <DropdownMenuGroup>
-              <a
-                href={`https://huggingface.co/spaces/${project.space_id}/settings`}
-                target="_blank"
-              >
-                <DropdownMenuItem>
-                  <Settings className="size-4 text-neutral-100" />
-                  Project Settings
+                <DropdownMenuItem onClick={onDelete}>
+                  <Trash2 className="size-4 text-neutral-100" />
+                  Delete Project
                 </DropdownMenuItem>
-              </a>
             </DropdownMenuGroup>
           </DropdownMenuContent>
         </DropdownMenu>

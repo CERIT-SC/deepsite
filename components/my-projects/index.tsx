@@ -8,6 +8,8 @@ import { Project } from "@/types";
 import { redirect } from "next/navigation";
 import { ProjectCard } from "./project-card";
 import { LoadProject } from "./load-project";
+import { api } from "@/lib/api";
+import { toast } from "sonner";
 
 export function MyProjects({
   projects: initialProjects,
@@ -19,6 +21,22 @@ export function MyProjects({
     redirect("/");
   }
   const [projects, setProjects] = useState<Project[]>(initialProjects || []);
+
+  const handleDelete = async (project: Project) => {
+    try {
+      await api.delete(`/me/projects/${project.space_id}`);
+      setProjects(prev => {
+        return prev.filter((p) => p.space_id !== project.space_id)
+      })
+      toast.success("Project deleted successfully!");
+      
+    } catch {
+      toast.error(
+        "Failed to delete the project."
+      );
+    }
+  }
+
   return (
     <>
       <section className="max-w-[86rem] py-12 px-4 mx-auto">
@@ -48,7 +66,7 @@ export function MyProjects({
             Create Project
           </Link>
           {projects.map((project: Project) => (
-            <ProjectCard key={project._id} project={project} />
+            <ProjectCard key={project._id} project={project} onDelete={() => handleDelete(project)}/>
           ))}
         </div>
       </section>
