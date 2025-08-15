@@ -16,7 +16,6 @@ import {
 } from "@/components/ui/popover";
 import { Input } from "@/components/ui/input";
 import { api } from "@/lib/api";
-import { LoginModal } from "@/components/login-modal";
 import { useUser } from "@/hooks/useUser";
 
 export function DeployButton({
@@ -29,7 +28,6 @@ export function DeployButton({
   const router = useRouter();
   const { user } = useUser();
   const [loading, setLoading] = useState(false);
-  const [open, setOpen] = useState(false);
 
   const [config, setConfig] = useState({
     title: "",
@@ -71,10 +69,10 @@ export function DeployButton({
               <div>
                 <Button variant="default" className="max-lg:hidden !px-4">
                   <MdSave className="size-4" />
-                  Deploy your Project
+                  Save your Project
                 </Button>
                 <Button variant="default" size="sm" className="lg:hidden">
-                  Deploy
+                  Save
                 </Button>
               </div>
             </PopoverTrigger>
@@ -99,17 +97,16 @@ export function DeployButton({
                   </div>
                 </div>
                 <p className="text-xl font-semibold text-neutral-950">
-                  Deploy as Space!
+                  Save your Project!
                 </p>
                 <p className="text-sm text-neutral-500 mt-1.5">
-                  Save and Deploy your project to a Space on the Hub. Spaces are
-                  a way to share your project with the world.
+                  So it doesn&apos;t get lost.
                 </p>
               </header>
               <main className="space-y-4 p-6">
                 <div>
                   <p className="text-sm text-neutral-700 mb-2">
-                    Choose a title for your space:
+                    Choose a title for your project:
                   </p>
                   <Input
                     type="text"
@@ -123,7 +120,7 @@ export function DeployButton({
                 </div>
                 <div>
                   <p className="text-sm text-neutral-700 mb-2">
-                    Then, let&apos;s deploy it!
+                    Then, let&apos;s save it!
                   </p>
                   <Button
                     variant="black"
@@ -131,7 +128,7 @@ export function DeployButton({
                     className="relative w-full"
                     disabled={loading}
                   >
-                    Deploy Space <Rocket className="size-4" />
+                    Save Project <Rocket className="size-4" />
                     {loading && (
                       <Loading className="ml-2 size-4 animate-spin" />
                     )}
@@ -145,7 +142,6 @@ export function DeployButton({
             <Button
               variant="default"
               className="max-lg:hidden !px-4"
-              onClick={() => setOpen(true)}
             >
               <MdSave className="size-4" />
               Save your Project
@@ -154,19 +150,11 @@ export function DeployButton({
               variant="default"
               size="sm"
               className="lg:hidden"
-              onClick={() => setOpen(true)}
             >
               Save
             </Button>
           </>
         )}
-        <LoginModal
-          open={open}
-          onClose={() => setOpen(false)}
-          html={html}
-          title="Log In to save your Project"
-          description="Log In through your Hugging Face account to save your project and increase your monthly free limit."
-        />
       </div>
     </div>
   );

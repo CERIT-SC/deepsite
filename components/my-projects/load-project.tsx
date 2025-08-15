@@ -88,7 +88,7 @@ export const LoadProject = ({
             onClick={() => setOpenLoginModal(true)}
           >
             <Import className="size-4 mr-1.5" />
-            Load existing Project
+            Load a Project from Hugging Face
           </Button>
           <Button
             variant="outline"
@@ -113,7 +113,7 @@ export const LoadProject = ({
             <div>
               <Button variant="outline" className="max-lg:hidden">
                 <Import className="size-4 mr-1.5" />
-                Load existing Project
+                Load a Project from Hugging Face
               </Button>
               <Button variant="outline" size="sm" className="lg:hidden">
                 {fullXsBtn && <Import className="size-3.5 mr-1" />}
@@ -140,14 +140,14 @@ export const LoadProject = ({
                 Import a Project
               </p>
               <p className="text-base text-neutral-500 mt-1.5">
-                Enter the URL of your Hugging Face Space to import an existing
-                project.
+                Enter the URL of a Hugging Face Space to import an{' '}
+                <a className="text-indigo-500 hover:text-indigo-600 underline font-medium" href="https://huggingface.co/spaces/victor/deepsite-gallery">existing project</a>.
               </p>
             </header>
             <main className="space-y-4 px-9 pb-9 pt-2">
               <div>
                 <p className="text-sm text-neutral-700 mb-2">
-                  Enter your Hugging Face Space
+                  Enter a Hugging Face Space
                 </p>
                 <Input
                   type="text"
@@ -184,10 +184,10 @@ export const LoadProject = ({
                         overlay={false}
                         className="ml-2 size-4 animate-spin"
                       />
-                      Fetching your Space...
+                      Fetching your Project...
                     </>
                   ) : (
-                    <>Import your Space</>
+                    <>Import the Project</>
                   )}
                 </Button>
               </div>

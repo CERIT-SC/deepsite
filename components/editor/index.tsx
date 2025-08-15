@@ -116,17 +116,7 @@ export const AppEditor = ({ project }: { project?: Project | null }) => {
 
   useMount(() => {
     if (deploy && project?._id) {
-      toast.success("Your project is deployed! 🎉", {
-        action: {
-          label: "See Project",
-          onClick: () => {
-            window.open(
-              `https://huggingface.co/spaces/${project?.space_id}`,
-              "_blank"
-            );
-          },
-        },
-      });
+      toast.success("Your project is saved! 🎉");
       router.replace(`/projects/${project?.space_id}`);
     }
     if (htmlStorage) {
