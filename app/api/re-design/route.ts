@@ -1,6 +1,8 @@
-import { NextRequest, NextResponse } from "next/server";
+import { ApiWithAuth } from "@/lib/auth";
+import { NextAuthRequest } from "next-auth";
+import { NextResponse } from "next/server";
 
-export async function PUT(request: NextRequest) {
+export const PUT = ApiWithAuth(async (request: NextAuthRequest) => {
   const body = await request.json();
   const { url } = body;
 
@@ -36,4 +38,4 @@ export async function PUT(request: NextRequest) {
       { status: 500 }
     );
   }
-}
+})

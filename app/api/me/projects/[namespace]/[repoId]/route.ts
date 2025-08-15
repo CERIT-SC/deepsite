@@ -1,17 +1,17 @@
-import { Session } from "next-auth";
-import { NextRequest, NextResponse } from "next/server";
+import { NextAuthRequest } from "next-auth";
+import { NextResponse } from "next/server";
 
 import { ApiWithAuth } from "@/lib/auth";
 import Project from "@/models/Project";
 import dbConnect from "@/lib/mongodb";
 import { getPTag } from "@/lib/utils";
+import { logInfo } from "@/lib/logger";
 
 export const GET = ApiWithAuth(async (
-  req: NextRequest,
-  session: Session,
+  request: NextAuthRequest,
   { params }: { params: { namespace: string; repoId: string } }
 ) => {
-  const user = session?.user;
+  const user = request.auth?.user;
 
   if (!user) {
     return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
@@ -47,11 +47,10 @@ export const GET = ApiWithAuth(async (
 });
 
 export const PUT = ApiWithAuth(async (
-  req: NextRequest,
-  session: Session,
+  request: NextAuthRequest,
   { params }: { params: { namespace: string; repoId: string } }
 ) => {
-  const user = session?.user;
+  const user = request.auth?.user;
 
   if (!user) {
     return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
@@ -60,11 +59,12 @@ export const PUT = ApiWithAuth(async (
   await dbConnect();
   const param = await params;
   const { namespace, repoId } = param;
-  const { html, prompts } = await req.json();
+  const { html, prompts } = await request.json();
+  const path = `${namespace}/${repoId}`
 
   const project = await Project.findOne({
     user_id: user.id,
-    space_id: `${namespace}/${repoId}`,
+    space_id: path,
   }).lean();
   if (!project) {
     return NextResponse.json(
@@ -77,7 +77,7 @@ export const PUT = ApiWithAuth(async (
   }
 
   await Project.updateOne(
-    { user_id: user.id, space_id: `${namespace}/${repoId}` },
+    { user_id: user.id, space_id: path },
     {
       $set: {
         prompts: [
@@ -88,16 +88,16 @@ export const PUT = ApiWithAuth(async (
       },
     }
   );
+
+  logInfo(request, "Project update", { path, prompts })
   return NextResponse.json({ ok: true }, { status: 200 });
 });
 
 export const POST = ApiWithAuth(async (
-  req: NextRequest,
-  session: Session,
+  request: NextAuthRequest,
   { params }: { params: { namespace: string; repoId: string } }
 ) => {
-  // session is now available
-  const user = session?.user;
+  const user = request.auth?.user;
 
   if (!user) {
     return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
@@ -111,8 +111,6 @@ export const POST = ApiWithAuth(async (
 
   const response = await fetch(space_url);
   if (!response.ok) {
-    console.log(await response.text())
-    console.log(space_url)
     return NextResponse.json(
       {
         ok: false,
@@ -150,6 +148,8 @@ export const POST = ApiWithAuth(async (
   });
 
   await newProject.save();
+
+  logInfo(request, "Project import", { path, space_url })
   return NextResponse.json(
     {
       ok: true,
@@ -162,11 +162,10 @@ export const POST = ApiWithAuth(async (
 
 
 export const DELETE = ApiWithAuth(async (
-  req: NextRequest,
-  session: Session,
+  request: NextAuthRequest,
   { params }: { params: { namespace: string; repoId: string } }
 ) => {
-  const user = session?.user;
+  const user = request.auth?.user;
 
   if (!user) {
     return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
@@ -175,10 +174,11 @@ export const DELETE = ApiWithAuth(async (
   await dbConnect();
   const param = await params;
   const { namespace, repoId } = param;
+  const path = `${namespace}/${repoId}`;
 
   const result = await Project.deleteOne({
     user_id: user.id,
-    space_id: `${namespace}/${repoId}`,
+    space_id: path,
   }).lean();
 
   if (result.deletedCount === 0) {
@@ -191,6 +191,7 @@ export const DELETE = ApiWithAuth(async (
     );
   }
 
+  logInfo(request, "Project delete", { path })
   return NextResponse.json(
     {
       ok: true,

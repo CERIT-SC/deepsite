@@ -1,5 +1,4 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 import OpenAI from 'openai';
 
@@ -11,13 +10,16 @@ import {
   REPLACE_END,
   SEARCH_START,
 } from "@/lib/prompts";
+import { logInfo } from "@/lib/logger";
+import { ApiWithAuth } from "@/lib/auth";
+import { NextAuthRequest } from "next-auth";
 
 const openai = new OpenAI({
   apiKey: "EMPTY",
   baseURL: process.env.LLM_URL,
 });
 
-export async function POST(request: NextRequest) {
+export const POST = ApiWithAuth(async (request: NextAuthRequest) => {
   const body = await request.json();
   const { prompt, model, redesignMarkdown, html } = body;
 
@@ -37,6 +39,8 @@ export async function POST(request: NextRequest) {
       { status: 400 }
     );
   }
+
+  logInfo(request, "Initial prompt", {model, prompt})
 
   try {
     // Create a stream response
@@ -131,9 +135,9 @@ export async function POST(request: NextRequest) {
       { status: 500 }
     );
   }
-}
+})
 
-export async function PUT(request: NextRequest) {
+export const PUT = ApiWithAuth(async (request: NextAuthRequest) => {
   const body = await request.json();
   const { prompt, html, previousPrompt, selectedElementHtml, model } =
     body;
@@ -154,6 +158,8 @@ export async function PUT(request: NextRequest) {
       { status: 400 }
     );
   }
+
+  logInfo(request, "Followup prompt", {model, prompt})
 
   try {
     const response = await openai.chat.completions.create(
@@ -270,4 +276,4 @@ export async function PUT(request: NextRequest) {
       { status: 500 }
     );
   }
-}
+})

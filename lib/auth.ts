@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import NextAuth, { Session } from "next-auth";
-import { NextRequest, NextResponse } from 'next/server';
+import NextAuth, { NextAuthRequest } from "next-auth";
+import { NextResponse } from 'next/server';
 
 export const { auth, handlers, signIn, signOut } = NextAuth({
   providers: [
@@ -50,9 +50,9 @@ async function hashString(str: string) {
 }
 
 export const ApiWithAuth = (
-  handler: (req: NextRequest, session: Session, ...args: any[]) => Promise<NextResponse|Response>
+  handler: (req: NextAuthRequest, ...args: any[]) => Promise<NextResponse|Response>
 ) => {
-  return async (req: NextRequest, ...args: any[]) => {
+  return async (req: NextAuthRequest, ...args: any[]) => {
     const session = await auth();
     if (!session) {
       return NextResponse.json(
@@ -60,6 +60,7 @@ export const ApiWithAuth = (
         { status: 401 }
       );
     }
-    return handler(req, session, ...args);
+    req.auth = session;
+    return handler(req, ...args);
   };
 };

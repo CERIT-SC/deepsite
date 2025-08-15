@@ -1,12 +1,13 @@
-import { Session } from "next-auth";
-import { NextRequest, NextResponse } from "next/server";
+import { NextAuthRequest } from "next-auth";
+import { NextResponse } from "next/server";
 import { ApiWithAuth } from "@/lib/auth";
 
 import Project from "@/models/Project";
 import dbConnect from "@/lib/mongodb";
-// import type user
-export const GET = ApiWithAuth(async (request: NextRequest, session: Session) => {
-  const user = session?.user;
+import { logInfo } from "@/lib/logger";
+
+export const GET = ApiWithAuth(async (request: NextAuthRequest) => {
+  const user = request.auth?.user;
 
   if (!user) {
     return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
@@ -38,12 +39,8 @@ export const GET = ApiWithAuth(async (request: NextRequest, session: Session) =>
   );
 });
 
-/**
- * This API route creates a new project in Hugging Face Spaces.
- * It requires an Authorization header with a valid token and a JSON body with the project details.
- */
-export const POST = ApiWithAuth(async (request: NextRequest, session: Session) => {
-  const user = session?.user;
+export const POST = ApiWithAuth(async (request: NextAuthRequest) => {
+  const user = request.auth?.user;
 
   if (!user) {
     return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
@@ -92,6 +89,8 @@ export const POST = ApiWithAuth(async (request: NextRequest, session: Session) =
       html,
       title: newTitle,
     });
+
+    logInfo(request, "Initial project save", { path, prompts })
     return NextResponse.json({ newProject, path, ok: true }, { status: 201 });
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
   } catch (err: any) {
