@@ -7,6 +7,7 @@ import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { GridPattern } from "@/components/magic-ui/grid-pattern";
 import { htmlTagToText } from "@/lib/html-tag-to-text";
+import DoubleBufferedIframe from "@/components/editor/iframe"
 
 export const Preview = ({
   html,
@@ -32,7 +33,6 @@ export const Preview = ({
   const [hoveredElement, setHoveredElement] = useState<HTMLElement | null>(
     null
   );
-
   // add event listener to the iframe to track hovered elements
   const handleMouseOver = (event: MouseEvent) => {
     if (iframeRef?.current) {
@@ -146,7 +146,7 @@ export const Preview = ({
           </span>
         </div>
       )}
-      <iframe
+      <DoubleBufferedIframe
         id="preview-iframe"
         ref={iframeRef}
         title="output"
@@ -161,15 +161,7 @@ export const Preview = ({
           }
         )}
         srcDoc={html}
-        onLoad={() => {
-          if (iframeRef?.current?.contentWindow?.document?.body) {
-            iframeRef.current.contentWindow.document.body.scrollIntoView({
-              block: isAiWorking ? "end" : "start",
-              inline: "nearest",
-              behavior: isAiWorking ? "instant" : "smooth",
-            });
-          }
-        }}
+        scrollToBottom={isAiWorking}
       />
     </div>
   );

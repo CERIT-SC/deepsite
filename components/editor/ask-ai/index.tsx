@@ -239,7 +239,7 @@ export function AskAI({
 
               // Throttle the re-renders to avoid flashing/flicker
               const now = Date.now();
-              if (now - lastRenderTime > 300) {
+              if (now - lastRenderTime > 1000) {
                 setHtml(partialDoc);
                 lastRenderTime = now;
               }
