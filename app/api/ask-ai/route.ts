@@ -17,6 +17,7 @@ import { NextAuthRequest } from "next-auth";
 const openai = new OpenAI({
   apiKey: "EMPTY",
   baseURL: process.env.LLM_URL,
+  timeout: 1200000 // 20 min
 });
 
 export const POST = ApiWithAuth(async (request: NextAuthRequest) => {
