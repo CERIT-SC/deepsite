@@ -20,20 +20,20 @@ const DoubleBufferedIframe = forwardRef<HTMLIFrameElement, DoubleBufferedIframeP
     const [backgroundSrcDoc, setBackgroundSrcDoc] = useState<string>(srcDoc)
     const [isForegroundLoading, setIsForegroundLoading] = useState<boolean>(false)
     const [isBackgroundLoading, setIsBackgroundLoading] = useState<boolean>(false)
+    const [loadNewDoc, setLoadNewDoc] = useState<boolean>(true)
     const [bufferedDoc, setBufferedDoc] = useState<string>("")
-    const currentDoc = useRef<string>("")
-    const loadNewDoc = useRef<boolean>(true)
 
+    const currentDoc = useRef<string>("")
     const backgroundRef = useRef<HTMLIFrameElement>(null);
-    const foregroundRef = useRef<HTMLIFrameElement>(null);
+    const foregroundRef = useRef<HTMLIFrameElement>(null);    
 
     useEffect(() => {
-      if (loadNewDoc.current) {
+      if (loadNewDoc && srcDoc !== currentDoc.current) {
         setBufferedDoc(srcDoc)
-        loadNewDoc.current = false
+        setLoadNewDoc(false)
         currentDoc.current = srcDoc
       }
-    }, [srcDoc])
+    }, [srcDoc, loadNewDoc])
 
     useEffect(() => {
       setIsForegroundLoading(true)
@@ -49,7 +49,7 @@ const DoubleBufferedIframe = forwardRef<HTMLIFrameElement, DoubleBufferedIframeP
 
     useEffect(() => {
       if (!isBackgroundLoading) {
-        loadNewDoc.current = true
+        setLoadNewDoc(true)
       }
     }, [isBackgroundLoading])
 
