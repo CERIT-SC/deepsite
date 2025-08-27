@@ -17,7 +17,7 @@ export interface HtmlHistory {
 
 export interface Project {
   title: string;
-  html: string;
+  htmls: string[];
   prompts: string[];
   user_id: string;
   space_id: string;

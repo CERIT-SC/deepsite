@@ -34,7 +34,7 @@ export default async function ProjectNamespacePage({
 
   const project = await getProjectForUser(session.user.id, namespace, repoId);
 
-  if (!project?.html) {
+  if (!project?.htmls) {
     redirect("/projects");
   }
   return <AppEditor project={project} />;

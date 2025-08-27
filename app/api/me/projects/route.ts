@@ -46,9 +46,9 @@ export const POST = ApiWithAuth(async (request: NextAuthRequest) => {
     return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
   }
 
-  const { title, html, prompts } = await request.json();
+  const { title, htmls, prompts } = await request.json();
 
-  if (!title || !html) {
+  if (!title || !htmls) {
     return NextResponse.json(
       { message: "Title and HTML content are required.", ok: false },
       { status: 400 }
@@ -86,7 +86,7 @@ export const POST = ApiWithAuth(async (request: NextAuthRequest) => {
       user_id: user.id,
       space_id: path,
       prompts,
-      html,
+      htmls,
       title: newTitle,
     });
 

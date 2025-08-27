@@ -26,7 +26,7 @@ export function ProjectCard({ project, onDelete }: { project: Project, onDelete:
           transform: "scale(0.2)",
           transformOrigin: "0 0",
         }}
-          srcDoc={project.html}
+          srcDoc={project.htmls.at(-1)}
           className="absolute inset-0 w-full h-full top-0 left-0 group-hover:brightness-75 transition-all duration-200 pointer-events-none"
         ></iframe>
 

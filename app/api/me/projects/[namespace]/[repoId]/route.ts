@@ -59,7 +59,7 @@ export const PUT = ApiWithAuth(async (
   await dbConnect();
   const param = await params;
   const { namespace, repoId } = param;
-  const { html, prompts } = await request.json();
+  const { htmls, prompts } = await request.json();
   const path = `${namespace}/${repoId}`
 
   const project = await Project.findOne({
@@ -80,11 +80,8 @@ export const PUT = ApiWithAuth(async (
     { user_id: user.id, space_id: path },
     {
       $set: {
-        prompts: [
-          ...(project && "prompts" in project ? project.prompts : []),
-          ...prompts,
-        ],
-        html
+        prompts,
+        htmls
       },
     }
   );
@@ -142,9 +139,9 @@ export const POST = ApiWithAuth(async (
   const newProject = new Project({
     user_id: user.id,
     space_id: path,
-    prompts: [],
+    prompts: ["<Project Import>"],
     title: repoId,
-    html
+    htmls: [html]
   });
 
   await newProject.save();

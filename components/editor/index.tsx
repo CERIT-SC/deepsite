@@ -1,5 +1,5 @@
 "use client";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { editor } from "monaco-editor";
 import Editor from "@monaco-editor/react";
@@ -30,8 +30,9 @@ import { isTheSameHtml } from "@/lib/compare-html-diff";
 export const AppEditor = ({ project }: { project?: Project | null }) => {
   const [htmlStorage, , removeHtmlStorage] = useLocalStorage("html_content");
   const [, copyToClipboard] = useCopyToClipboard();
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const { html, setHtml, htmlHistory, setHtmlHistory, prompts, setPrompts } =
-    useEditor(project?.html ?? (htmlStorage as string) ?? defaultHTML);
+    useEditor(project?.htmls.at(-1) ?? (htmlStorage as string) ?? defaultHTML);
   // get query params from URL
   const searchParams = useSearchParams();
   const router = useRouter();
@@ -54,6 +55,17 @@ export const AppEditor = ({ project }: { project?: Project | null }) => {
   const [selectedElement, setSelectedElement] = useState<HTMLElement | null>(
     null
   );
+
+  useEffect(() => {
+    const htmlHistory = project?.htmls.map((html, idx) => ({
+      html: html,
+      createdAt: new Date(),
+      prompt: project.prompts[idx]
+    }))
+    if (htmlHistory) {
+      setHtmlHistory(htmlHistory)
+    }
+  }, [project, setHtmlHistory])
 
   /**
    * Resets the layout based on screen size
@@ -166,6 +178,29 @@ export const AppEditor = ({ project }: { project?: Project | null }) => {
     console.log("Editor validation markers:", markers);
   };
 
+  const getDataToSave = () => {
+    const htmlsToSave = htmlHistory.map(item => item.html);
+    const promptsToSave = htmlHistory.map(item => item.prompt)
+    if (htmlsToSave.at(-1) !== html) {
+      htmlsToSave.push(html)
+      promptsToSave.push("<User Modification>")
+    }
+
+    return {
+      htmls: htmlsToSave,
+      prompts: promptsToSave
+    }
+  }
+
+  const onSave = (htmls: string[], prompts: string[]) => {
+    setHtmlHistory(htmls.map((value, idx) => ({
+        html: value,
+        prompt: prompts[idx],
+        createdAt: new Date()
+      })
+    ))
+  }
+
   return (
     <section className="h-[100dvh] bg-neutral-950 flex flex-col">
       <Header tab={currentTab} onNewTab={setCurrentTab}>
@@ -175,9 +210,9 @@ export const AppEditor = ({ project }: { project?: Project | null }) => {
           }}
         />
         {project?._id ? (
-          <SaveButton html={html} prompts={prompts} />
+          <SaveButton {...getDataToSave()} onSave={onSave} />
         ) : (
-          <DeployButton html={html} prompts={prompts} />
+          <DeployButton {...getDataToSave()} />
         )}
       </Header>
       <main className="bg-neutral-950 flex-1 max-lg:flex-col flex w-full max-lg:h-[calc(100%-82px)] relative">
@@ -235,13 +270,12 @@ export const AppEditor = ({ project }: { project?: Project | null }) => {
                   p: string,
                   updatedLines?: number[][]
                 ) => {
-                  const currentHistory = [...htmlHistory];
-                  currentHistory.unshift({
+                  setHtmlHistory(prevHistory => [...prevHistory, {
                     html: finalHtml,
                     createdAt: new Date(),
                     prompt: p,
-                  });
-                  setHtmlHistory(currentHistory);
+                  }]);
+
                   setSelectedElement(null);
                   // if xs or sm
                   if (window.innerWidth <= 1024) {

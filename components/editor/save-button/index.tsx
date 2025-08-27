@@ -9,11 +9,13 @@ import { Button } from "@/components/ui/button";
 import { api } from "@/lib/api";
 
 export function SaveButton({
-  html,
+  htmls,
   prompts,
+  onSave,
 }: {
-  html: string;
+  htmls: string[];
   prompts: string[];
+  onSave: (htmls: string[], prompts: string[]) => void;
 }) {
   // get params from URL
   const { namespace, repoId } = useParams<{
@@ -27,7 +29,7 @@ export function SaveButton({
 
     try {
       const res = await api.put(`/me/projects/${namespace}/${repoId}`, {
-        html,
+        htmls,
         prompts,
       });
       if (res.data.ok) {
@@ -39,6 +41,7 @@ export function SaveButton({
       toast.error(err.response?.data?.error || err.message);
     } finally {
       setLoading(false);
+      onSave(htmls, prompts);
     }
   };
   return (

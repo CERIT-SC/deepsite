@@ -9,7 +9,7 @@ export const useEditor = (defaultHtml: string) => {
   const [html, setHtml] = useState(defaultHtml);
   /**
    * State to manage the history of HTML edits.
-   * This will store previous versions of the HTML content along with metadata. (not saved to DB)
+   * This will store previous versions of the HTML content along with metadata.
    */
   const [htmlHistory, setHtmlHistory] = useState<HtmlHistory[]>([]);
 

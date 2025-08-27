@@ -19,10 +19,10 @@ import { api } from "@/lib/api";
 import { useUser } from "@/hooks/useUser";
 
 export function DeployButton({
-  html,
+  htmls,
   prompts,
 }: {
-  html: string;
+  htmls: string[];
   prompts: string[];
 }) {
   const router = useRouter();
@@ -43,7 +43,7 @@ export function DeployButton({
     try {
       const res = await api.post("/me/projects", {
         title: config.title,
-        html,
+        htmls,
         prompts,
       });
       if (res.data.ok) {

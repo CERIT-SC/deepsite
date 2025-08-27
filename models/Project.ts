@@ -13,8 +13,8 @@ const ProjectSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
-  html: {
-    type: String,
+  htmls: {
+    type: [String],
     required: true,
   },
   prompts: {

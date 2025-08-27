@@ -1,4 +1,4 @@
-import { History as HistoryIcon } from "lucide-react";
+import { History as HistoryIcon, CopyIcon } from "lucide-react";
 import { HtmlHistory } from "@/types";
 import {
   Popover,
@@ -6,6 +6,7 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { Button } from "@/components/ui/button";
+import { toast } from "sonner";
 
 export function History({
   history,
@@ -14,6 +15,28 @@ export function History({
   history: HtmlHistory[];
   setHtml: (html: string) => void;
 }) {
+  const isFakePrompt = (prompt: string) => {
+    return prompt.startsWith("<") && prompt.endsWith(">")
+  }
+
+  const getPromptSpan = (prompt: string) => {
+    if (isFakePrompt(prompt)) {
+      prompt = prompt.slice(1, -1)
+      return <span className="line-clamp-1 text-gray-500">{prompt}</span>
+    } else {
+      return <span className="line-clamp-1" title={prompt}>{prompt}</span>
+    }
+  }
+
+  const handleCopy = async (prompt: string) => {
+    try {
+      await navigator.clipboard.writeText(prompt);
+      toast.success("Prompt Copied!");
+    } catch (err) {
+      console.error('Failed to copy text: ', err);
+    }
+  }
+  
   return (
     <Popover>
       <PopoverTrigger asChild>
@@ -31,14 +54,14 @@ export function History({
         </header>
         <main className="px-4 space-y-3">
           <ul className="max-h-[250px] overflow-y-auto">
-            {history?.map((item, index) => (
+            {history?.toReversed().map((item, index) => (
               <li
                 key={index}
                 className="text-gray-300 text-xs py-2 border-b border-gray-800 last:border-0 flex items-center justify-between gap-2"
               >
                 <div className="">
-                  <span className="line-clamp-1">{item.prompt}</span>
-                  <span className="text-gray-500 text-[10px]">
+                  {getPromptSpan(item.prompt)}
+                  {/* <span className="text-gray-500 text-[10px]">
                     {new Date(item.createdAt).toLocaleDateString("en-US", {
                       month: "2-digit",
                       day: "2-digit",
@@ -51,17 +74,26 @@ export function History({
                         second: "2-digit",
                         hour12: false,
                       })}
-                  </span>
+                  </span> */}
                 </div>
-                <Button
-                  variant="sky"
-                  size="xs"
-                  onClick={() => {
-                    setHtml(item.html);
-                  }}
-                >
-                  Select
-                </Button>
+                <div className="flex items-center">
+                  {!isFakePrompt(item.prompt) && <Button
+                    variant="ghost"
+                    size="xs"
+                    onClick={() => handleCopy(item.prompt)}
+                  >
+                    <CopyIcon className="size-4 text-neutral-300"/>
+                  </Button>}
+                  <Button
+                    variant="sky"
+                    size="xs"
+                    onClick={() => {
+                      setHtml(item.html);
+                    }}
+                  >
+                    Select
+                  </Button>
+                </div>
               </li>
             ))}
           </ul>
