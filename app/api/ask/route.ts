@@ -285,11 +285,35 @@ export async function PUT(request: NextRequest) {
     return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
   };
 
+  const normalizeHtml = (html: string): string => {
+    return html
+      // Normalize whitespace within tags
+      .replace(/\s+/g, ' ')
+      // Remove spaces before closing >
+      .replace(/\s+>/g, '>')
+      // Remove spaces before />
+      .replace(/\s+\/>/g, '/>')
+      // Normalize spaces around = in attributes
+      .replace(/\s*=\s*/g, '=')
+      // Normalize quotes (convert single to double)
+      .replace(/='([^']*)'/g, '="$1"')
+      // Remove trailing spaces in opening/closing tags
+      .replace(/<([^>]*?)\s+>/g, '<$1>')
+      // Normalize self-closing tags
+      .replace(/\/\s*>/g, '/>')
+      .trim();
+  };
+
   const createFlexibleHtmlRegex = (searchBlock: string) => {
-    let searchRegex = escapeRegExp(searchBlock)
-      .replace(/\s+/g, '\\s*')
+    // Normalize both the search block for comparison
+    const normalizedSearch = normalizeHtml(searchBlock);
+    
+    // Escape regex special characters
+    let searchRegex = escapeRegExp(normalizedSearch)
+      // Make whitespace flexible (but only between elements, not within tags)
       .replace(/>\s*</g, '>\\s*<')
-      .replace(/\s*>/g, '\\s*>');
+      // Make line breaks and spaces around content flexible
+      .replace(/>\s*([^<]+)\s*</g, '>\\s*$1\\s*<');
     
     return new RegExp(searchRegex, 'g');
   };
@@ -418,17 +442,49 @@ export async function PUT(request: NextRequest) {
               updatedLines.push([1, replaceBlock.split("\n").length]);
             } else {
               const regex = createFlexibleHtmlRegex(searchBlock);
-              const match = regex.exec(pageHtml);
+              
+              // Normalize the pageHtml for matching
+              const normalizedPageHtml = normalizeHtml(pageHtml);
+              const match = regex.exec(normalizedPageHtml);
               
               if (match) {
-                const matchedText = match[0];
-                const beforeText = pageHtml.substring(0, match.index);
-                const startLineNumber = beforeText.split("\n").length;
-                const replaceLines = replaceBlock.split("\n").length;
-                const endLineNumber = startLineNumber + replaceLines - 1;
+                // Find the original match in the non-normalized HTML
+                const normalizedSearch = normalizeHtml(searchBlock);
+                const originalMatchIndex = pageHtml.indexOf(searchBlock);
+                
+                if (originalMatchIndex !== -1) {
+                  const beforeText = pageHtml.substring(0, originalMatchIndex);
+                  const startLineNumber = beforeText.split("\n").length;
+                  const replaceLines = replaceBlock.split("\n").length;
+                  const endLineNumber = startLineNumber + replaceLines - 1;
 
-                updatedLines.push([startLineNumber, endLineNumber]);
-                pageHtml = pageHtml.replace(matchedText, replaceBlock);
+                  updatedLines.push([startLineNumber, endLineNumber]);
+                  pageHtml = pageHtml.replace(searchBlock, replaceBlock);
+                } else {
+                  // Fallback: try to find similar pattern in the original HTML
+                  const flexibleRegex = new RegExp(
+                    escapeRegExp(searchBlock)
+                      .replace(/\s+/g, '\\s+')
+                      .replace(/\s*=\s*/g, '\\s*=\\s*')
+                      .replace(/'\s*([^']*)\s*'/g, "'\\s*$1\\s*'")
+                      .replace(/"\s*([^"]*)\s*"/g, '"\\s*$1\\s*"')
+                      .replace(/\s*>/g, '\\s*>')
+                      .replace(/\s*\/>/g, '\\s*/>'),
+                    'g'
+                  );
+                  
+                  const flexibleMatch = flexibleRegex.exec(pageHtml);
+                  if (flexibleMatch) {
+                    const matchedText = flexibleMatch[0];
+                    const beforeText = pageHtml.substring(0, flexibleMatch.index);
+                    const startLineNumber = beforeText.split("\n").length;
+                    const replaceLines = replaceBlock.split("\n").length;
+                    const endLineNumber = startLineNumber + replaceLines - 1;
+
+                    updatedLines.push([startLineNumber, endLineNumber]);
+                    pageHtml = pageHtml.replace(matchedText, replaceBlock);
+                  }
+                }
               }
             }
 
@@ -507,17 +563,54 @@ export async function PUT(request: NextRequest) {
             updatedLines.push([1, replaceBlock.split("\n").length]);
           } else {
             const regex = createFlexibleHtmlRegex(searchBlock);
-            const match = regex.exec(newHtml);
+            
+            // Get the main page HTML (first page or index page)
+            const mainPage = updatedPages.find(p => p.path === '/' || p.path === '/index' || p.path === 'index') || updatedPages[0];
+            if (!mainPage) continue;
+            
+            newHtml = mainPage.html;
+            
+            // Normalize the newHtml for matching  
+            const normalizedNewHtml = normalizeHtml(newHtml);
+            const match = regex.exec(normalizedNewHtml);
             
             if (match) {
-              const matchedText = match[0];
-              const beforeText = newHtml.substring(0, match.index);
-              const startLineNumber = beforeText.split("\n").length;
-              const replaceLines = replaceBlock.split("\n").length;
-              const endLineNumber = startLineNumber + replaceLines - 1;
+              // Find the original match in the non-normalized HTML
+              const originalMatchIndex = newHtml.indexOf(searchBlock);
+              
+              if (originalMatchIndex !== -1) {
+                const beforeText = newHtml.substring(0, originalMatchIndex);
+                const startLineNumber = beforeText.split("\n").length;
+                const replaceLines = replaceBlock.split("\n").length;
+                const endLineNumber = startLineNumber + replaceLines - 1;
 
-              updatedLines.push([startLineNumber, endLineNumber]);
-              newHtml = newHtml.replace(matchedText, replaceBlock);
+                updatedLines.push([startLineNumber, endLineNumber]);
+                newHtml = newHtml.replace(searchBlock, replaceBlock);
+              } else {
+                // Fallback: try to find similar pattern in the original HTML
+                const flexibleRegex = new RegExp(
+                  escapeRegExp(searchBlock)
+                    .replace(/\s+/g, '\\s+')
+                    .replace(/\s*=\s*/g, '\\s*=\\s*')
+                    .replace(/'\s*([^']*)\s*'/g, "'\\s*$1\\s*'")
+                    .replace(/"\s*([^"]*)\s*"/g, '"\\s*$1\\s*"')
+                    .replace(/\s*>/g, '\\s*>')
+                    .replace(/\s*\/>/g, '\\s*/>'),
+                  'g'
+                );
+                
+                const flexibleMatch = flexibleRegex.exec(newHtml);
+                if (flexibleMatch) {
+                  const matchedText = flexibleMatch[0];
+                  const beforeText = newHtml.substring(0, flexibleMatch.index);
+                  const startLineNumber = beforeText.split("\n").length;
+                  const replaceLines = replaceBlock.split("\n").length;
+                  const endLineNumber = startLineNumber + replaceLines - 1;
+
+                  updatedLines.push([startLineNumber, endLineNumber]);
+                  newHtml = newHtml.replace(matchedText, replaceBlock);
+                }
+              }
             }
           }
 
