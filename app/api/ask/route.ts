@@ -324,41 +324,9 @@ export async function PUT(request: NextRequest) {
     const systemPrompt = FOLLOW_UP_SYSTEM_PROMPT + (isNew ? PROMPT_FOR_PROJECT_NAME : "");
     const userContext = "You are modifying the HTML file based on the user's request.";
     
-    const getRelevantPages = (pages: Page[], prompt: string, maxPages: number = 2): Page[] => {
-      if (pages.length <= maxPages) return pages;
-      
-      const indexPage = pages.find(p => p.path === '/' || p.path === '/index' || p.path === 'index');
-      const otherPages = pages.filter(p => p !== indexPage);
-      
-      if (selectedElementHtml) {
-        const elementKeywords = selectedElementHtml.toLowerCase().match(/class=["']([^"']*)["']|id=["']([^"']*)["']/g) || [];
-        const relevantPages = otherPages.filter(page => {
-          const pageContent = page.html.toLowerCase();
-          return elementKeywords.some((keyword: string) => pageContent.includes(keyword.toLowerCase()));
-        });
-        
-        return indexPage ? [indexPage, ...relevantPages.slice(0, maxPages - 1)] : relevantPages.slice(0, maxPages);
-      }
-      
-      const keywords = prompt.toLowerCase().split(/\s+/).filter(word => word.length > 3);
-      const scoredPages = otherPages.map(page => {
-        const pageContent = (page.path + ' ' + page.html).toLowerCase();
-        const score = keywords.reduce((acc, keyword) => {
-          return acc + (pageContent.includes(keyword) ? 1 : 0);
-        }, 0);
-        return { page, score };
-      });
-      
-      const topPages = scoredPages
-        .sort((a, b) => b.score - a.score)
-        .slice(0, maxPages - (indexPage ? 1 : 0))
-        .map(item => item.page);
-      
-      return indexPage ? [indexPage, ...topPages] : topPages;
-    };
-
-    const relevantPages = getRelevantPages(pages || [], prompt);
-    const pagesContext = relevantPages
+    // Send all pages without filtering
+    const allPages = pages || [];
+    const pagesContext = allPages
       .map((p: Page) => `- ${p.path}\n${p.html}`)
       .join("\n\n");
     
@@ -366,7 +334,7 @@ export async function PUT(request: NextRequest) {
       selectedElementHtml
         ? `\n\nYou have to update ONLY the following element, NOTHING ELSE: \n\n\`\`\`html\n${selectedElementHtml}\n\`\`\` Could be in multiple pages, if so, update all the pages.`
         : ""
-    }. Current pages (${relevantPages.length}/${pages?.length || 0} shown): ${pagesContext}. ${files?.length > 0 ? `Available images: ${files?.map((f: string) => f).join(', ')}.` : ""}`;
+    }. Current pages (${allPages.length} total): ${pagesContext}. ${files?.length > 0 ? `Available images: ${files?.map((f: string) => f).join(', ')}.` : ""}`;
     
     const estimatedInputTokens = estimateInputTokens(systemPrompt, prompt, userContext + assistantContext);
     const dynamicMaxTokens = calculateMaxTokens(selectedProvider, estimatedInputTokens, false);
@@ -691,7 +659,6 @@ pinned: false
 tags:
   - deepsite-v3
 ---
-
 # Welcome to your new DeepSite project!
 This project was created with [DeepSite](https://deepsite.hf.co).
       `;
@@ -746,4 +713,3 @@ This project was created with [DeepSite](https://deepsite.hf.co).
     );
   }
 }
-
