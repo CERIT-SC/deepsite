@@ -10,7 +10,6 @@ import { api } from "@/lib/api";
 import { useRouter } from "next/navigation";
 import { useUser } from "./useUser";
 import { LivePreviewRef } from "@/components/editor/live-preview";
-import { isTheSameHtml } from "@/lib/compare-html-diff";
 
 export const useAi = (onScrollToBottom?: () => void, livePreviewRef?: React.RefObject<LivePreviewRef | null>) => {
   const client = useQueryClient();
@@ -199,15 +198,10 @@ export const useAi = (onScrollToBottom?: () => void, livePreviewRef?: React.RefO
             }
             
             const newPages = formatPages(contentResponse);
-            let projectName = contentResponse.match(/<<<<<<< PROJECT_NAME_START ([\s\S]*?) >>>>>>> PROJECT_NAME_END/)?.[1]?.trim();
-            if (!projectName) {
-              projectName = prompt.substring(0, 40).replace(/[^a-zA-Z0-9]/g, "-").slice(0, 40);
-            }
+            const projectName = contentResponse.match(/<<<<<<< PROJECT_NAME_START ([\s\S]*?) >>>>>>> PROJECT_NAME_END/)?.[1]?.trim();
             setPages(newPages);
-            setLastSavedPages([...newPages]);
-            if (newPages.length > 0 && !isTheSameHtml(newPages[0].html)) {
-              createNewProject(prompt, newPages, projectName, isLoggedIn);
-            }
+            setLastSavedPages([...newPages]); // Mark initial pages as saved
+            createNewProject(prompt, newPages, projectName, isLoggedIn);
             setPrompts([...prompts, prompt]);
 
             return { success: true, pages: newPages };
