@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
-import { RepoDesignation, listFiles, spaceInfo, uploadFiles, deleteFiles } from "@huggingface/hub";
+import { RepoDesignation, listFiles, spaceInfo, uploadFiles, deleteFiles, downloadFile } from "@/lib/my-hub";
 
-import { isAuthenticated } from "@/lib/auth";
+import { isAuthenticated } from "@/lib/my-auth";
 import { Page } from "@/types";
 
 export async function POST(
@@ -67,11 +67,17 @@ export async function POST(
         commitFilePaths.add(fileInfo.path);
         
         // Fetch the file content from the specific commit
-        const response = await fetch(
-          `https://huggingface.co/spaces/${namespace}/${repoId}/raw/${commitId}/${fileInfo.path}`
-        );
+        // const response = await fetch(
+        //   `https://huggingface.co/spaces/${namespace}/${repoId}/raw/${commitId}/${fileInfo.path}`
+        // );
         
-        if (response.ok) {
+        const response = await downloadFile({
+          repo,
+          path: fileInfo.path,
+          revision: commitId,
+        });
+
+        if (response) {
           const content = await response.text();
           let mimeType = "text/plain";
           

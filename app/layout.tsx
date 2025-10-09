@@ -14,6 +14,10 @@ import TanstackContext from "@/components/contexts/tanstack-query-context";
 import { LoginProvider } from "@/components/contexts/login-context";
 import { ProProvider } from "@/components/contexts/pro-context";
 import { generateSEO, generateStructuredData } from "@/lib/seo";
+import { auth, isAuthenticated } from "@/lib/my-auth";
+import { User } from "@/types";
+import { NextResponse } from "next/server";
+import { listSpaces } from "@/lib/my-hub";
 
 const inter = Inter({
   variable: "--font-inter-sans",
@@ -55,19 +59,22 @@ export const viewport: Viewport = {
 };
 
 async function getMe() {
-  const cookieStore = await cookies();
-  const token = cookieStore.get(MY_TOKEN_KEY())?.value;
-  if (!token) return { user: null, projects: [], errCode: null };
-  try {
-    const res = await apiServer.get("/me", {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    });
-    return { user: res.data.user, projects: res.data.projects, errCode: null };
-  } catch (err: any) {
-    return { user: null, projects: [], errCode: err.status };
+  const user = await isAuthenticated();
+
+  if (user instanceof NextResponse || !user) {
+    return { user: null, projects: [], errCode: null };
   }
+
+  const projects = [];
+  for await (const space of listSpaces({
+    search: {
+      owner: user.name,
+    }
+  })) {
+    projects.push(space);
+  }
+
+  return { user, projects, errCode: null };
 }
 
 export default async function RootLayout({

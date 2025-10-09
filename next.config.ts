@@ -25,8 +25,30 @@ const nextConfig: NextConfig = {
     return config;
   },
   images: {
-    remotePatterns: [new URL('https://huggingface.co/**')],
+    remotePatterns: [
+      new URL('https://huggingface.co/**'),
+      new URL('https://deepsite-dev.ai.e-infra.cz/api/**'),
+      new URL('https://deepsite.ai.e-infra.cz/api/**'),
+    ],
   },
+  rewrites: async () => [
+    {
+      source: "/spaces/:namespace/:repoId/:commitId/:path*",
+      destination: "/api/me/spaces/:namespace/:repoId/:commitId/:path*"
+    },
+  ],
+  redirects: async () => [
+    {
+      source: "/spaces/:namespace/:repoId/:commitId",
+      destination: "/spaces/:namespace/:repoId/:commitId/index.html",
+      statusCode: 301
+    },
+    {
+      source: "/spaces/:namespace/:repoId",
+      destination: "/spaces/:namespace/:repoId/main",
+      statusCode: 301
+    }
+  ]
 };
 
 export default nextConfig;

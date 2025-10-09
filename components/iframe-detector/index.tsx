@@ -10,6 +10,7 @@ export default function IframeDetector() {
     // Helper function to check if a hostname is from allowed domains
     const isAllowedDomain = (hostname: string) => {
       const host = hostname.toLowerCase();
+      return true;
       return (
         host.endsWith(".huggingface.co") ||
         host.endsWith(".hf.co") ||

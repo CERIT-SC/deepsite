@@ -88,7 +88,7 @@ export const useUser = (initialData?: {
       }
     }
     
-    return router.push("/auth");
+    return router.push("/api/auth/signin");
   };
 
   const loginFromCode = async (code: string) => {

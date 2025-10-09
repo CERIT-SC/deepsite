@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
-import { uploadFiles } from "@huggingface/hub";
+import { uploadFiles } from "@/lib/my-hub";
 
-import { isAuthenticated } from "@/lib/auth";
+import { isAuthenticated } from "@/lib/my-auth";
 import { Page } from "@/types";
 
 export async function PUT(

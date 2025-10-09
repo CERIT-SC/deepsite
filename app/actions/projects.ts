@@ -1,8 +1,8 @@
 "use server";
 
-import { isAuthenticated } from "@/lib/auth";
+import { isAuthenticated } from "@/lib/my-auth";
 import { NextResponse } from "next/server";
-import { listSpaces } from "@huggingface/hub";
+import { listSpaces } from "@/lib/my-hub";
 import { ProjectType } from "@/types";
 
 export async function getProjects(): Promise<{

@@ -11,6 +11,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { ProjectType } from "@/types";
+import { useEffect, useState } from "react";
 
 // from-red-500 to-red-500
 // from-yellow-500 to-yellow-500
@@ -28,6 +29,12 @@ export function ProjectCard({
   project: ProjectType;
   onDelete: () => void;
 }) {
+  const [iframeSrc, setIframeSrc] = useState<string>();
+
+  useEffect(() => {
+    setIframeSrc(`${window.location.origin}/spaces/${project.name}/main`);
+  }, [project.name]);
+
   const handleDelete = () => {
     if (
       confirm(
@@ -67,13 +74,10 @@ export function ProjectCard({
         ) : (
           <div className="absolute inset-0 w-full h-full overflow-hidden">
             <iframe
-              src={`https://${project.name.replaceAll(
-                "/",
-                "-"
-              )}.static.hf.space`}
-              className="w-[1200px] h-[675px] border-0 origin-top-left pointer-events-none"
+              src={iframeSrc}
+              className="w-[1200px] h-[675px] border-0 origin-top-left"
               style={{
-                transform: "scale(0.5)",
+                transform: "scale(0.27)",
                 transformOrigin: "top left",
               }}
             />

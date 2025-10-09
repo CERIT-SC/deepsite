@@ -1,4 +1,5 @@
 import mongoose from "mongoose";
+import { GridFSBucket } from "mongodb";
 
 const MONGODB_URI = process.env.MONGODB_URI;
 // @ts-expect-error iknown issue with mongoose types
@@ -23,6 +24,18 @@ async function dbConnect() {
   }
   cached.conn = await cached.promise;
   return cached.conn;
+}
+
+let gridFSBucket: GridFSBucket | null = null;
+
+export function initGridFS() {
+  if (!gridFSBucket) {
+    const db = mongoose.connection.db;
+    if (db) {
+      gridFSBucket = new GridFSBucket(db, { bucketName: 'files' });
+    }
+  }
+  return gridFSBucket;
 }
 
 export default dbConnect;

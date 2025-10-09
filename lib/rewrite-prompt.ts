@@ -1,5 +1,5 @@
 import { EnhancedSettings } from "@/types";
-import { InferenceClient } from "@huggingface/inference";
+import { InferenceClient } from "@/lib/my-inference";
 import { PROMPT_FOR_REWRITE_PROMPT, PROMPT_FOR_REWRITE_PROMPT_END } from "./prompts";
 
 export async function rewritePrompt(prompt: string, enhancedSettings: EnhancedSettings, options: { token: string, billTo: string | null }, model: string, provider: string) {

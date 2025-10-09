@@ -2,7 +2,7 @@
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 import { headers } from "next/headers";
-import { InferenceClient } from "@huggingface/inference";
+import { InferenceClient } from "@/lib/my-inference";
 
 import { MODELS } from "@/lib/providers";
 import {
@@ -21,9 +21,9 @@ import {
 import { calculateMaxTokens, estimateInputTokens, getProviderSpecificConfig } from "@/lib/max-tokens";
 import MY_TOKEN_KEY from "@/lib/get-cookie-name";
 import { Page } from "@/types";
-import { createRepo, RepoDesignation, uploadFiles } from "@huggingface/hub";
-import { isAuthenticated } from "@/lib/auth";
-import { getBestProvider } from "@/lib/best-provider";
+import { createRepo, RepoDesignation, uploadFiles } from "@/lib/my-hub";
+import { isAuthenticated } from "@/lib/my-auth";
+import { getBestProvider } from "@/lib/my-best-provider";
 // import { rewritePrompt } from "@/lib/rewrite-prompt";
 import { COLORS } from "@/lib/utils";
 import { templates } from "@/lib/templates";
@@ -31,8 +31,11 @@ import { templates } from "@/lib/templates";
 const ipAddresses = new Map();
 
 export async function POST(request: NextRequest) {
-  const authHeaders = await headers();
-  const userToken = request.cookies.get(MY_TOKEN_KEY())?.value;
+  const user = await isAuthenticated();
+
+  if (user instanceof NextResponse || !user) {
+    return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+  }
 
   const body = await request.json();
   const { prompt, provider, model, redesignMarkdown, enhancedSettings, pages } = body;
@@ -55,39 +58,19 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  let token: string | null = null;
-  if (userToken) token = userToken;
+  if (!selectedModel.providers.includes(provider) && provider !== "auto") {
+    return NextResponse.json(
+      {
+        ok: false,
+        error: `The selected model does not support the ${provider} provider.`,
+        openSelectProvider: true,
+      },
+      { status: 400 }
+    );
+  }
+
+  let token = user.token;
   let billTo: string | null = null;
-
-  /**
-   * Handle local usage token, this bypass the need for a user token
-   * and allows local testing without authentication.
-   * This is useful for development and testing purposes.
-   */
-  if (process.env.HF_TOKEN && process.env.HF_TOKEN.length > 0) {
-    token = process.env.HF_TOKEN;
-  }
-
-  const ip = authHeaders.get("x-forwarded-for")?.includes(",")
-    ? authHeaders.get("x-forwarded-for")?.split(",")[1].trim()
-    : authHeaders.get("x-forwarded-for");
-
-  if (!token) {
-    ipAddresses.set(ip, (ipAddresses.get(ip) || 0) + 1);
-    if (ipAddresses.get(ip) > MAX_REQUESTS_PER_IP) {
-      return NextResponse.json(
-        {
-          ok: false,
-          openLogin: true,
-          message: "Log In to continue using the service",
-        },
-        { status: 429 }
-      );
-    }
-
-    token = process.env.DEFAULT_HF_TOKEN as string;
-    billTo = "huggingface";
-  }
 
   const selectedProvider = await getBestProvider(selectedModel.value, provider)
 

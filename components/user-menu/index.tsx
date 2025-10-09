@@ -55,12 +55,12 @@ export const UserMenu = ({ className }: { className?: string }) => {
               View Projects
             </DropdownMenuItem>
           </Link>
-          <a href="https://huggingface.co/settings/billing" target="_blank">
+          {/* <a href="https://huggingface.co/settings/billing" target="_blank">
             <DropdownMenuItem>
               <ChartSpline className="size-4 text-neutral-100" />
               Usage Quota
             </DropdownMenuItem>
-          </a>
+          </a> */}
         </DropdownMenuGroup>
         <DropdownMenuSeparator />
         <DropdownMenuItem

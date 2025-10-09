@@ -82,7 +82,7 @@ export function Header() {
         <div className="flex items-center gap-2">
           {project?.space_id && (
             <Link
-              href={`https://huggingface.co/spaces/${project.space_id}`}
+              href={`${window.location.origin}/spaces/${project.space_id}`}
               target="_blank"
             >
               <Button

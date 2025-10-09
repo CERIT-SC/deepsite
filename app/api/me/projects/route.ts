@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
-import { RepoDesignation, createRepo, listCommits, spaceInfo, uploadFiles } from "@huggingface/hub";
+import { RepoDesignation, createRepo, listCommits, spaceInfo, uploadFiles } from "@/lib/my-hub";
 
-import { isAuthenticated } from "@/lib/auth";
+import { isAuthenticated } from "@/lib/my-auth";
 import { Commit, Page } from "@/types";
 import { COLORS } from "@/lib/utils";
 

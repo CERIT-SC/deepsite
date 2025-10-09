@@ -285,10 +285,7 @@ export const Preview = forwardRef<LivePreviewRef, { isNew: boolean }>(
               )}
               src={
                 currentCommit
-                  ? `https://${project?.space_id?.replaceAll(
-                      "/",
-                      "-"
-                    )}--rev-${currentCommit.slice(0, 7)}.static.hf.space`
+                  ? `${window.location.origin}/spaces/${project.space_id}/${currentCommit}`
                   : undefined
               }
               srcDoc={!currentCommit ? stableHtml : undefined}

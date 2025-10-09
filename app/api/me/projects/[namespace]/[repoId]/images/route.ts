@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
-import { RepoDesignation, spaceInfo, uploadFiles } from "@huggingface/hub";
+import { RepoDesignation, spaceInfo, uploadFiles } from "@/lib/my-hub";
 
-import { isAuthenticated } from "@/lib/auth";
+import { isAuthenticated } from "@/lib/my-auth";
 import Project from "@/models/Project";
 import dbConnect from "@/lib/mongodb";
 
@@ -97,7 +97,7 @@ export async function POST(
     return NextResponse.json({ 
       ok: true, 
       message: `Successfully uploaded ${files.length} image(s) to ${namespace}/${repoId}/images/`,
-      uploadedFiles: files.map((file) => `https://huggingface.co/spaces/${namespace}/${repoId}/resolve/main/${file.name}`),
+      uploadedFiles: files.map((file) => `${process.env.NEXT_APP_API_URL}/me/projects/${namespace}/${repoId}/images/${file.name.split('/').pop()}`),
     }, { status: 200 });
 
   } catch (error) {

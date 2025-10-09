@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
-import { RepoDesignation, spaceInfo, listFiles, deleteRepo, listCommits, downloadFile } from "@huggingface/hub";
+import { RepoDesignation, spaceInfo, listFiles, deleteRepo, listCommits, downloadFile } from "@/lib/my-hub";
 
-import { isAuthenticated } from "@/lib/auth";
+import { isAuthenticated } from "@/lib/my-auth";
 import { Commit, Page } from "@/types";
 
 export async function DELETE(
@@ -129,7 +129,8 @@ export async function GET(
       if (fileInfo.type === "directory" && fileInfo.path === "images") {
         for await (const imageInfo of listFiles({repo, accessToken: user.token as string, path: fileInfo.path})) {
           if (allowedFilesExtensions.includes(imageInfo.path.split(".").pop() || "")) {
-            files.push(`https://huggingface.co/spaces/${namespace}/${repoId}/resolve/main/${imageInfo.path}`);
+            // files.push(`https://huggingface.co/spaces/${namespace}/${repoId}/resolve/main/${imageInfo.path}`);
+            files.push(`${process.env.NEXT_APP_API_URL}/me/projects/${namespace}/${repoId}/images/${imageInfo.path.split('/').pop()}`);
           }
         }
       }
