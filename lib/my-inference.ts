@@ -23,7 +23,7 @@ export class InferenceClient {
 
   constructor(token: string, options: { baseURL?: string } = {}) {
     this.openai = new OpenAI({
-      apiKey: token || "EMPTY",
+      apiKey: process.env.LLM_API_KEY,
       baseURL: options.baseURL || process.env.LLM_URL,
       timeout: 1200000, // 20 minutes
     });
